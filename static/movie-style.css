@@ -1,0 +1,52 @@
+body {
+    background-color: #e7dfdd;
+    font-size: large;
+}
+
+#flashes {
+    border: 3px solid red;
+    padding: 2ex 3em;
+    font-size: x-large;
+    color: red;
+}
+
+#featured-movie {
+    background-color:#f7efee; 
+    border: 20px dotted #A239CA;
+    padding: 3ex 10em;
+    color: #4717f6;
+}
+
+/* we'll put this on the #featured movie and then remove it using JS, so
+   that we don't get the brief flash of the element when the page
+   loads. */
+   
+.hidden {
+    display: none;
+}
+
+#featured-movie h1 {
+    font-size: xx-large;
+}
+
+#featured-movie h2 {
+    font-size: x-large;
+}
+
+.avgrating {
+    font-style: italic;
+    font-size: large;
+}
+
+/* make the current row more visible. Note that, w/o border-collapse,
+TR can't have a border, so we did this highlighting with
+background-color instead. 
+
+https://www.sitepoint.com/community/t/question-can-i-add-a-border-to-tr-element-in-css/5617/2
+*/
+
+
+tr:hover {
+    background-color: beige;
+}
+    

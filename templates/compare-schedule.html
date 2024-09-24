@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name=author content="Scott D. Anderson">
+    <title>When to Pair: Compare Schedule</title>
+    <style>
+        
+        td { text-align: right; }
+        th,td { padding: 0.5ex; }
+
+        .chosen { background-color: lime }
+
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+    </style>
+</head>
+<body>
+
+<main>
+    <h1>When To Pair</h1>
+
+    <form>
+        <label>Choose student A (blue)
+            <select required name="studentA">
+                <option value="">select</option>
+                {% for s in students %}
+                <option value="{{s.student_email}}">{{s.student_name}}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </form>
+            
+    <form>
+        <label>Choose student B (yellow)
+            <select required name="studentB">
+                <option value="">select</option>
+                {% for s in students %}
+                <option value="{{s.student_email}}">{{s.student_name}}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </form>
+
+    <p>
+        <button id="show_both">show both</button>
+    </p>
+
+    <table id="when">
+        <caption>time slot selection</caption>
+        <thead>
+            <tr>
+                <th scope="col">Sun</th>
+                <th scope="col">Mon</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td data-slot="sun-9-00">9:00</td>
+                <td data-slot="mon-9-00">9:00</td>
+            </tr>
+            <tr>
+                <td data-slot="sun-9-30" class="half">30</td>
+                <td data-slot="mon-9-30" class="half">30</td>
+            </tr>
+            <tr>
+                <td data-slot="sun-10-00">10:00</td>
+                <td data-slot="mon-10-00">10:00</td>
+            </tr>
+            <tr>
+                <td data-slot="mon-10-30" class="half">30</td>
+                <td data-slot="sun-10-30" class="half">30</td>
+            </tr>
+        </tbody>
+    </table>
+
+
+</main>
+
+<!-- JavaScript at the bottom -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cs.wellesley.edu/~anderson/js/bounds/bounds-plugin.js"></script>
+<script>
+    // Flask will tell us the course_id and also create the 
+    const courseId = "{{course_id}}";
+    const urlToSave = "{{url_for('save_schedule')}}";
+    const urlToGetSchedule = "{{url_for('get_schedule')}}";
+</script>
+
+<script src="{{url_for('static', filename='when-to-pair.js')}}"></script>
+
+
+</body>
+</html>
