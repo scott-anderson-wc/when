@@ -1,4 +1,4 @@
-# when
+# Matching students
 
 A project to facilitate group work among people
 
