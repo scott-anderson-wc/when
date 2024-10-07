@@ -1,0 +1,74 @@
+import random
+import cs304dbi as dbi
+dbi.conf('scottdb')
+
+class Student:
+  def __init__(self, course, email, name, availability):
+    self.course = course
+    self.email = email
+    self.name = name
+    self.availability = availability # dictionary
+  
+  def __repr__(self):
+    return f"Student(name={self.name}, email={self.email})"
+
+  def get_day_schedule(day_sched_int): # i.e. value stored in availability
+    all_slots = "900,930,1000,1030,1100,1130,1200,1230,1300,1330,1400,1430,1500,1530,1600,1630,1700,1730,1800,1830,1900,1930,2000,2030,2100,2130,2200,2230,2300,2330".split(',')
+    slots = []
+    for i,slot in enumerate(all_slots):
+      slot_val = 1 << i
+      if day_sched_int & slot_val:
+          slots.append(slot)
+    return slots
+ 
+class All_Students:
+  def __init__(self):
+    self.students = {} # email: Student
+    self.scores = {} # (stud1, stud2) : score
+
+  def add_students(self, conn, course):
+    '''returns a dictionary of all students, each represented as a dictionary'''
+    dic = {}
+    curs = dbi.dict_cursor(conn)
+    # both the numeric and string value
+    nrows = curs.execute('''select course, student_email, student_name,
+                                   sun+0 as sun_i, mon+0 as mon_i, tue+0 as tue_i, wed+0 as wed_i, thu+0 as thu_i, fri+0 as fri_i, sat+0 as sat_i,
+                                   sun as sun_s, mon as mon_s, tue as tue_s, wed as wed_s, thu as thu_s, fri as fri_s, sat as sat_s
+                            from when_to_pair
+                            where course = %s''',
+                         [course])
+    for row in curs.fetchall():
+        # create availability dict
+      availability = {
+          'sun_i': row['sun_i'],
+          'mon_i': row['mon_i'],
+          'tue_i': row['tue_i'],
+          'wed_i': row['wed_i'],
+          'thu_i': row['thu_i'],
+          'fri_i': row['fri_i'],
+          'sat_i': row['sat_i'],
+          'sun_s': row['sun_s'],
+          'mon_s': row['mon_s'],
+          'tue_s': row['tue_s'],
+          'wed_s': row['wed_s'],
+          'thu_s': row['thu_s'],
+          'fri_s': row['fri_s'],
+          'sat_s': row['sat_s']
+          }
+      # add Student object
+      self.students[row['student_email']] = Student(
+        course=row['course'], 
+        email=row['student_email'], 
+        name=row['student_name'], 
+        availability=availability)
+    # return dic
+
+  def add_score(self, email1, email2, score):
+      self.scores[(email1, email2)] = score
+      self.scores[(email2, email1)] = score  # Redundant storage for easy lookup
+  
+  def get_student(self, email):
+      return self.students.get(email, None)
+
+  def get_score(self, email1, email2):
+      return self.scores.get((email1, email2), None)

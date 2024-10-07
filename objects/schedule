@@ -1,0 +1,61 @@
+from Student import Student, All_Students
+
+class Schedule:
+    def __init__(self):
+        # list of students 
+        self.students = []
+        
+        # list of pairs of student indices (smaller first)
+        # Are we keeping matched as a 2D array or are we going to do an array of pairs?
+        self.matched = [[False] * len(self.students) for _ in range(len(self.students))]
+
+        # list of unmatched students (if any)
+        self.unmatched = []
+
+        # sum of the score for all pairs of matches 
+        self.score = 0
+
+    def add_student(self, student):
+        ''' Adding students to our comprehensive student list '''
+        self.students.append(student)
+        self.unmatched.append(student)
+
+    def match_students_int(self, stud_i, stud_j):
+        ''' Matching two students '''
+        # do we add tuple or array of the students indices to matches
+        self.matched.append((stud_i,stud_j))
+        self.unmatched.remove(stud_i)
+        self.unmatched.remove(stud_j)
+
+    def compute_schedule_score(self):
+        sched_score = 0
+        lowest_overlap_score = float('inf')  # Set to infinity initially
+        n = len(self.students)
+        
+        for i in range(n):
+            for j in range(i + 1, n):
+                if self.matched[i][j]:
+                    score = All_Students.get_score(self.students[i], self.students[j])
+                    sched_score += score
+                    lowest_overlap_score = min(lowest_overlap_score, score)
+
+        sched_score += lowest_overlap_score  # Add lowest overlap score
+        self.score = sched_score
+
+    def sched_to_str(self):
+        ''' For printing out a schedule '''
+        result = ''
+        n = len(self.students)
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                if self.matched[i][j]:
+                    score = All_Students.get_score(self.students[i], self.students[j])
+                    result += f'{score}\t{self.students[i]["student_name"]} with {self.students[j]["student_name"]}\n'
+        
+        if self.unmatched:
+            unmatched_names = [student['student_name'] for student in self.unmatched]
+            result += 'unmatched:  ' + ', '.join(unmatched_names) + '\n'
+        
+        result += f'schedule score: {self.score}'
+        return result
