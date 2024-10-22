@@ -1,0 +1,60 @@
+from student import Student, All_Students
+
+class Matching:
+    def __init__(self):
+        # obtain all students from the Section class 
+        self.students_list = All_Students.students
+
+        self.unmatched = self.students_list[:]
+        self.matching = [[False] * len(self.students) for _ in range(len(self.students))]
+        
+        self.pairs = []
+        self.worst_pair = None
+        # sum of the score for all pairs of matches 
+        self.score = 0
+
+    def match_students(self, stud_a, stud_b):
+        ''' Matching two students and updating their matched status to True '''
+        # TO-DO: understand if student_list is represented because index of students are needed
+        i = stud_a['index']
+        j = stud_b['index']
+        self.matching[i][j] = True
+        self.matching[j][i] = True
+        self.unmatched.remove(stud_a)
+        self.unmatched.remove(stud_b)
+    
+    def unmatch_students(self, stud_a, stud_b):
+        ''' Unmatching two students and updating their matched status to False '''
+        i = stud_a['index']
+        j = stud_b['index']
+        self.matching[i][j] = False
+        self.matching[j][i] = False
+        self.unmatched.append(stud_a)
+        self.unmatched.append(stud_b)
+
+    def all_pairs(self):
+        ''' Dynamically generating all valid pairs that are already in the schedule, represented as a 2D array'''
+        n = len(self.student_list)
+        for i in range(n):
+            for j in range(i,n):
+                if self.matching[i][j]:
+                    yield (i,j)
+
+    def compute_matching_score(self):
+        ''' Computes the total score of the matching '''
+        total_score = 0
+        lowest_score = float('inf')  # Set to infinity initially
+        n = len(self.students_list)
+        
+        for i in range(n):
+            for j in range(i, n):
+                if self.matching[i][j]:
+                    stud_a = self.students_list[i]
+                    stud_b = self.students_list[j]
+                    score = All_Students.get_score(stud_a, stud_b)
+                    total_score += score
+                    lowest_score = min(lowest_score, score)
+
+        total_score += lowest_score  # Add lowest overlap score
+        self.score = total_score
+        return total_score
