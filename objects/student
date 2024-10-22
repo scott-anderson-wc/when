@@ -2,7 +2,16 @@ import random
 import cs304dbi as dbi
 dbi.conf('scottdb')
 
+"""TODO:
+  - Right now the Students's information is being parsed all together from the database
+  Implement a set_name, set_email... set_availability?
+  """
+
+
 class Student:
+  all_slots = "900,930,1000,1030,1100,1130,1200,1230,1300,1330,1400,1430,1500,1530,1600,1630,1700,1730,1800,1830,1900,1930,2000,2030,2100,2130,2200,2230,2300,2330".split(',')
+  days_of_the_week = 'Sun,Mon,Tue,Wed,Thu,Fri,Sat'.split(',')
+
   def __init__(self, course, email, name, availability):
     self.course = course
     self.email = email
@@ -12,14 +21,63 @@ class Student:
   def __repr__(self):
     return f"Student(name={self.name}, email={self.email})"
 
-  def get_day_schedule(day_sched_int): # i.e. value stored in availability
-    all_slots = "900,930,1000,1030,1100,1130,1200,1230,1300,1330,1400,1430,1500,1530,1600,1630,1700,1730,1800,1830,1900,1930,2000,2030,2100,2130,2200,2230,2300,2330".split(',')
+  def decode_day_schedule(day_sched_int): # i.e. value stored in availability
+    """Converts the integer-based bitmask into a list of time slots"""
     slots = []
-    for i,slot in enumerate(all_slots):
+    for i,slot in enumerate(Student.all_slots):
       slot_val = 1 << i
       if day_sched_int & slot_val:
           slots.append(slot)
     return slots
+  
+  def student_schedule_string(self):
+    """Returns a formatted string showingthe student's availability"""
+    # result = self['student_name'] + ' on\n'
+    result = f"{self.name} is available on \n"
+    for day in Student.days_of_the_week:
+        dic_key = f'{day}_s'
+        if dic_key in self.availability:
+            slots = Student.decode_day_schedule(self.availability[dic_key])
+            result += f"{day}: {slots}\n"
+        else:
+           result += f" {day}: No availability"
+    return result
+  
+  def day_score(sched_a, sched_b):
+    # How do we want to call this? Student1.
+
+    '''args are ints, representing two student schedules for the same
+    day. The score adds 1 for each overlap (each is 30 minutes) and
+    subtracts half the number of overlaps, so a single 2-hour overlap
+    counts for 3 (4-1), while two 1-hour overlaps counts for 2 (4-2)
+    and four 30-minute overlaps counts for zero.
+
+    '''
+    day_overlap = sched_a & sched_b
+    # print(f'{day_overlap=}')
+    # bit_count is python 3.10, so we'll use this instead
+    bit_count = bin(day_overlap).count('1')
+    # loop instead to count both at once
+    overlap_count = 0
+    overlap_sum = 0
+    prev_overlap = False    # true if continuing the previous session
+    for i,slot in enumerate(all_slots):
+        slot_val = 1 << i
+        if (sched_a & slot_val and
+            sched_b & slot_val):
+            # an overlap!
+            # print(f'overlap for {i=}')
+            # print(f'{slot_val=}')
+            overlap_sum += 1
+            if not prev_overlap:
+                # start a new session
+                prev_overlap = True
+                overlap_count += 1
+        else:
+            # gap
+            prev_overlap = False
+    # print(f'{overlap_count=} and {overlap_sum=}')
+    return overlap_sum - overlap_count
  
 class All_Students:
   def __init__(self):
@@ -27,7 +85,17 @@ class All_Students:
     self.scores = {} # (stud1, stud2) : score
 
   def add_students(self, conn, course):
-    '''returns a dictionary of all students, each represented as a dictionary'''
+    """
+    Fetches student data from the database for a specific course, creating a Class object 
+    containing all the Student objects for each student.
+    Parameters:
+    - conn: Database connections object.
+    - course: The course name to select the students from
+    
+    Returns:
+    - A dictionary of all students, where the key is the student's email, and the values
+    is the Student objects
+    """
     dic = {}
     curs = dbi.dict_cursor(conn)
     # both the numeric and string value
@@ -47,13 +115,13 @@ class All_Students:
           'thu_i': row['thu_i'],
           'fri_i': row['fri_i'],
           'sat_i': row['sat_i'],
-          'sun_s': row['sun_s'],
-          'mon_s': row['mon_s'],
-          'tue_s': row['tue_s'],
-          'wed_s': row['wed_s'],
-          'thu_s': row['thu_s'],
-          'fri_s': row['fri_s'],
-          'sat_s': row['sat_s']
+          # 'sun_s': row['sun_s'],
+          # 'mon_s': row['mon_s'],
+          # 'tue_s': row['tue_s'],
+          # 'wed_s': row['wed_s'],
+          # 'thu_s': row['thu_s'],
+          # 'fri_s': row['fri_s'],
+          # 'sat_s': row['sat_s']
           }
       # add Student object
       self.students[row['student_email']] = Student(
@@ -61,8 +129,8 @@ class All_Students:
         email=row['student_email'], 
         name=row['student_name'], 
         availability=availability)
-    # return dic
-
+    return dic
+  
   def add_score(self, email1, email2, score):
       self.scores[(email1, email2)] = score
       self.scores[(email2, email1)] = score  # Redundant storage for easy lookup
